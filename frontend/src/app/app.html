@@ -1,0 +1,47 @@
+<div class="app-container">
+  <aside class="sidebar glass-card">
+    <div class="logo">
+      <span class="logo-text">SS<span class="highlight">-SEO</span></span>
+    </div>
+    
+    <nav class="nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nav-item">
+        <i class="icon">📊</i> Dashboard
+      </a>
+      <a routerLink="/sites" routerLinkActive="active" class="nav-item">
+        <i class="icon">🌐</i> My Sites
+      </a>
+      <a routerLink="/scheduler" routerLinkActive="active" class="nav-item">
+        <i class="icon">⏰</i> Scheduler
+      </a>
+      <a routerLink="/settings" routerLinkActive="active" class="nav-item">
+        <i class="icon">⚙️</i> Settings
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="avatar">A</div>
+        <div class="user-info">
+          <p class="user-name">Agency Mode</p>
+          <p class="user-status">Pro Plan</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content-area">
+    <header class="top-bar">
+      <div class="search-box">
+        <input type="text" placeholder="Search sites...">
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" (click)="onNewSite()">+ New Site</button>
+      </div>
+    </header>
+
+    <div class="scroll-container">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

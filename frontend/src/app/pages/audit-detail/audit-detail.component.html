@@ -1,0 +1,301 @@
+<div class="audit-page">
+  <div class="header-actions flex justify-between items-center mb-8">
+    <div>
+      <a routerLink="/" class="back-link">← Back to Dashboard</a>
+      <h2 class="page-title mt-2">SEO Audit Report</h2>
+    </div>
+    <div class="flex gap-4">
+      <button class="btn btn-outline" (click)="runAudit()" [disabled]="loading()">
+        {{ loading() ? 'Analyzing...' : 'Re-run Audit' }}
+      </button>
+      <button class="btn btn-outline" (click)="exportReport()" [disabled]="!getCurrentReport()">
+        Download JSON
+      </button>
+      <button class="btn btn-outline" (click)="printReport()" [disabled]="!getCurrentReport()">
+        📄 Export PDF
+      </button>
+      <button class="btn btn-primary" (click)="applyPatch()" [disabled]="patching() || !getCurrentReport()?.suggestedTags">
+        {{ patching() ? 'Applying...' : 'Apply AI Suggestions' }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state glass-card text-center">
+      <div class="loader"></div>
+      <p>Crawling site files and computing deep SEO intelligence...</p>
+    </div>
+  } @else if (siteReport()) {
+    <div class="audit-grid">
+      <!-- Site Summary -->
+      <div class="summary-card glass-card full-width">
+        <div class="flex justify-between items-center">
+            <div>
+                <h3>Project Overview: Site-Wide Health</h3>
+                <p class="text-muted">{{ siteReport()!.pages.length }} pages analyzed</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="btn btn-outline btn-sm" (click)="generateTechnical()" [disabled]="generatingTechnical()">
+                    {{ generatingTechnical() ? 'Generating...' : '🛠️ Gen Sitemap/Robots' }}
+                </button>
+            </div>
+        </div>
+      </div>
+
+      <!-- Page Selector -->
+      <div class="page-selector glass-card">
+        <h3>Pages</h3>
+        <div class="page-list mt-4">
+            @for (page of siteReport()!.pages; track page.url; let i = $index) {
+                <div class="page-item" [class.active]="selectedPageIndex() === i" (click)="selectedPageIndex.set(i)">
+                    <span class="page-name">{{ page.url }}</span>
+                    <span class="page-score" [class]="getScoreClass(page.overallScore)">{{ page.overallScore }}%</span>
+                </div>
+            }
+        </div>
+      </div>
+
+      <!-- Details for Selected Page -->
+      @if (getCurrentReport(); as pageReport) {
+        <div class="details-pane">
+            <div class="flex gap-4 mb-6">
+                <!-- Overview -->
+                <div class="overview-card glass-card flex-1">
+                    <div class="score-circle" [class]="getScoreClass(pageReport.overallScore)">
+                        <span class="score-value">{{ pageReport.overallScore }}%</span>
+                        <span class="score-label">Page Health</span>
+                    </div>
+                    <div class="scores-list mt-6">
+                        <div class="score-item">
+                            <span>Readability</span>
+                            <div class="progress-bar"><div class="fill" [style.width.%]="pageReport.readabilityScore || 0" [class]="getScoreClass(pageReport.readabilityScore || 0)"></div></div>
+                            <span class="score-num">{{ pageReport.readabilityScore || 0 }}%</span>
+                        </div>
+                        <div class="score-item">
+                            <span>Meta Quality</span>
+                            <div class="progress-bar"><div class="fill" [style.width.%]="pageReport.scores.meta" [class]="getScoreClass(pageReport.scores.meta)"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="recommendations-card glass-card flex-1">
+                    <h3>Actionable Tips</h3>
+                    <ul class="recs-list">
+                    @for (rec of pageReport.recommendations; track rec) {
+                        <li class="rec-item">
+                        <span class="icon">💡</span>
+                        {{ rec }}
+                        </li>
+                    }
+                    @if (pageReport.brokenLinks && pageReport.brokenLinks.length > 0) {
+                        <li class="rec-item error">
+                            <span class="icon">🔗</span>
+                            Found {{ pageReport.brokenLinks.length }} suspicious/broken links.
+                        </li>
+                    }
+                    </ul>
+                </div>
+            </div>
+
+            <!-- AI Suggestions vs Current -->
+            <div class="suggestions-card glass-card">
+                <div class="flex justify-between items-center mb-4">
+                <h3>AI Optimized Meta Tags</h3>
+                <span class="badge badge-ai">Safe Patch Ready</span>
+                </div>
+                <div class="diff-table">
+                <div class="diff-row header">
+                    <div class="col">Tag</div>
+                    <div class="col">Current</div>
+                    <div class="col">Suggested</div>
+                </div>
+                <!-- ... existing rows ... -->
+                <div class="diff-row">
+                    <div class="col label">Title</div>
+                    <div class="col current">{{ pageReport.data.title || 'Empty' }}</div>
+                    <div class="col suggested">{{ pageReport.suggestedTags?.title }}</div>
+                </div>
+                <div class="diff-row">
+                    <div class="col label">Description</div>
+                    <div class="col current">{{ pageReport.data.description || 'Empty' }}</div>
+                    <div class="col suggested">{{ pageReport.suggestedTags?.description }}</div>
+                </div>
+                </div>
+            </div>
+        </div>
+      }
+    </div>
+  <!-- Luxury Dashboard Report Section (Matches User Image) -->
+  <div class="print-only-report dashboard-report">
+    <!-- Page 1: Dashboard Overview -->
+    <div class="report-page">
+        <header class="report-header">
+            <div class="logo-area">
+                <span class="logo-text">your <span class="logo-blue">LOGO</span></span>
+            </div>
+            <div class="header-titles">
+                <h1 class="top-title">SEO Dashboard</h1>
+                <p class="top-date">{{ siteReport()!.timestamp | date:'MMMM yyyy' }}</p>
+            </div>
+        </header>
+
+        <h1 class="main-report-tag">SEO Report</h1>
+
+        <!-- Top Grid: Visibility & Meta -->
+        <div class="dashboard-top-grid">
+            <div class="dash-card rankings-chart">
+                <div class="card-header">
+                    <span class="icon">📊</span> Google Rankings
+                </div>
+                <div class="mock-chart">
+                    <div class="bar-group">
+                        <div class="bar color-1" style="height: 60%"></div>
+                        <div class="bar color-2" style="height: 40%"></div>
+                        <div class="bar color-3" style="height: 30%"></div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar color-1" style="height: 50%"></div>
+                        <div class="bar color-2" style="height: 45%"></div>
+                        <div class="bar color-3" style="height: 20%"></div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar color-1" style="height: 70%"></div>
+                        <div class="bar color-2" style="height: 30%"></div>
+                        <div class="bar color-3" style="height: 40%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-mini-cards">
+                <div class="dash-card mini">
+                    <span class="mini-label">Score Change</span>
+                    <div class="mini-value success">
+                        <span class="arrow">▲</span> {{ (siteReport()!.overallScore - (site()?.previousScore || 0)) }}
+                    </div>
+                </div>
+                <div class="dash-card mini">
+                    <span class="mini-label">Technical Health</span>
+                    <div class="mini-value">{{ siteReport()!.overallScore }}</div>
+                </div>
+                <div class="dash-card mini">
+                    <span class="mini-label">Pages Scanned</span>
+                    <div class="mini-value">{{ siteReport()!.pages.length }}</div>
+                </div>
+                <div class="dash-card mini">
+                    <span class="mini-label">Broken Links</span>
+                    <div class="mini-value danger">{{ siteReport()!.pages[0].brokenLinks?.length || 0 }}</div>
+                </div>
+            </div>
+
+            <div class="dash-card visibility-card">
+                <div class="card-header">
+                    <span class="icon">🔥</span> Visibility
+                </div>
+                <div class="visibility-value">{{ siteReport()!.overallScore }}%</div>
+            </div>
+        </div>
+
+        <!-- Middle Grid: Circular Scores -->
+        <div class="dashboard-scores-grid">
+            <div class="dash-card circle-score">
+                <p class="score-name">Performance Score</p>
+                <div class="ring-container">
+                    <svg viewBox="0 0 36 36" class="circular-chart yellow">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" [attr.stroke-dasharray]="siteReport()!.pages[0].scores.structure + ', 100'" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <text x="18" y="20.35" class="percentage">{{ siteReport()!.pages[0].scores.structure }}</text>
+                    </svg>
+                </div>
+            </div>
+            <div class="dash-card circle-score">
+                <p class="score-name">Accessibility Score</p>
+                <div class="ring-container">
+                    <svg viewBox="0 0 36 36" class="circular-chart yellow">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" [attr.stroke-dasharray]="siteReport()!.pages[0].scores.accessibility + ', 100'" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <text x="18" y="20.35" class="percentage">{{ siteReport()!.pages[0].scores.accessibility }}</text>
+                    </svg>
+                </div>
+            </div>
+            <div class="dash-card circle-score">
+                <p class="score-name">Best Practices Score</p>
+                <div class="ring-container">
+                    <svg viewBox="0 0 36 36" class="circular-chart blue">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" [attr.stroke-dasharray]="siteReport()!.pages[0].scores.bestPractices + ', 100'" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <text x="18" y="20.35" class="percentage">{{ siteReport()!.pages[0].scores.bestPractices }}</text>
+                    </svg>
+                </div>
+            </div>
+            <div class="dash-card circle-score">
+                <p class="score-name">SEO Score</p>
+                <div class="ring-container">
+                    <svg viewBox="0 0 36 36" class="circular-chart red">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" [attr.stroke-dasharray]="siteReport()!.overallScore + ', 100'" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <text x="18" y="20.35" class="percentage">{{ siteReport()!.overallScore }}</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyword/Page Table -->
+        <div class="dashboard-table-card dash-card">
+            <div class="table-info">Showing {{ siteReport()!.pages.length }} of {{ siteReport()!.pages.length }} Pages</div>
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th width="40%">PAGE URL</th>
+                        <th width="15%">SCORE</th>
+                        <th width="15%">READABILITY</th>
+                        <th width="15%">ISSUES</th>
+                        <th width="15%">CHANGE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (page of siteReport()!.pages; track page.url) {
+                        <tr>
+                            <td><strong>{{ page.url }}</strong></td>
+                            <td>{{ page.overallScore }}%</td>
+                            <td>{{ page.readabilityScore }}%</td>
+                            <td>{{ page.recommendations.length }}</td>
+                            <td class="success">▲ {{ (page.overallScore - (site()?.previousScore || 0)) }}</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Page 2+: AI Transformation Blueprint (Added for Full Detail) -->
+    @for (page of siteReport()!.pages; track page.url) {
+        <div class="report-page">
+            <h2 class="section-heading">Optimization Details: {{ page.url }}</h2>
+            <div class="optimization-blueprint">
+                <div class="blueprint-item">
+                    <h4>Identified Issues</h4>
+                    <ul class="blueprint-list">
+                        @for (rec of page.recommendations; track rec) {
+                            <li>{{ rec }}</li>
+                        }
+                    </ul>
+                </div>
+                <div class="blueprint-item">
+                    <h4>Meta Patch Blueprint</h4>
+                    <table class="blueprint-table">
+                        <tr>
+                            <td><strong>Title</strong></td>
+                            <td><span class="old">{{ page.data.title || 'Empty' }}</span> → <span class="new">{{ page.suggestedTags?.title }}</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Description</strong></td>
+                            <td><span class="old">{{ page.data.description || 'Empty' }}</span> → <span class="new">{{ page.suggestedTags?.description }}</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+  </div>
+</div>

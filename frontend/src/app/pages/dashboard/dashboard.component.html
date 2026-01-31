@@ -1,0 +1,83 @@
+<div class="dashboard-page">
+  <div class="stats-grid">
+    <div class="stat-card glass-card">
+      <p class="stat-label">Total Sites</p>
+      <h2 class="stat-value">{{ totalSites() }}</h2>
+      <p class="stat-change success">+2 this month</p>
+    </div>
+    <div class="stat-card glass-card">
+      <p class="stat-label">Average SEO Score</p>
+      <h2 class="stat-value" [class]="getScoreClass(averageScore())">{{ averageScore() }}%</h2>
+      <p class="stat-change" [class.success]="averageScore() > 70">Good health</p>
+    </div>
+    <div class="stat-card glass-card">
+      <p class="stat-label">System Status</p>
+      <h2 class="stat-value text-success">Active</h2>
+      <p class="stat-change">All engines normal</p>
+    </div>
+  </div>
+
+  <section class="sites-section mt-8">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="section-title">Recent Site Performance</h3>
+      <button class="btn btn-primary" (click)="ui.openAddSiteModal()">+ Add New Site</button>
+    </div>
+
+    @if (ui.showAddSiteModal()) {
+      <div class="modal-overlay">
+        <div class="modal-content glass-card">
+          <h3>Add New Site</h3>
+          <form (submit)="addSite($event)" class="mt-4 flex flex-col gap-4">
+            <div class="form-group">
+              <label>Site Name</label>
+              <input type="text" name="name" required placeholder="My E-commerce Site">
+            </div>
+            <div class="form-group">
+              <label>Local Path</label>
+              <input type="text" name="localPath" required placeholder="C:\projects\mysite">
+            </div>
+            <div class="form-group">
+              <label>Live URL (Optional)</label>
+              <input type="url" name="url" placeholder="https://mysite.com">
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button type="button" class="btn btn-outline" (click)="ui.closeAddSiteModal()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Register Site</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    <div class="sites-list">
+      @for (site of sites(); track site.id) {
+        <div class="site-row glass-card">
+          <div class="site-info">
+            <div class="site-icon">🌐</div>
+            <div>
+              <p class="site-name">{{ site.name }}</p>
+              <p class="site-url">{{ site.url || site.localPath }}</p>
+            </div>
+          </div>
+          <div class="site-stats">
+            <div class="score-container">
+              <span class="score-label">SEO Score</span>
+              <div class="score-badge" [class]="getScoreClass(site.averageScore)">
+                {{ site.averageScore || 'N/A' }}%
+              </div>
+            </div>
+            <div class="last-analyzed">
+              <span class="label">Last analyzed</span>
+              <p class="value">{{ site.lastAnalysis | date:'short' }}</p>
+            </div>
+            <button class="btn btn-primary btn-sm" [routerLink]="['/audit', site.id]">Audit</button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state glass-card text-center">
+          <p>No sites registered yet. Add your first site to begin.</p>
+        </div>
+      }
+    </div>
+  </section>
+</div>
