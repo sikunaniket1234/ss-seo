@@ -59,6 +59,85 @@ async function startServer() {
         res.status(201).json(newSite);
     });
 
+    app.put('/api/sites/:id', async (req, res) => {
+        console.log(`Incoming PUT request for site: ${req.params.id}`);
+        const site = db.data.sites.find(s => s.id === req.params.id);
+        if (!site) {
+            console.log(`Site NOT FOUND: ${req.params.id}`);
+            return res.status(404).send('Site not found');
+        }
+
+        const { name, url, localPath, status } = req.body;
+        if (name) site.name = name;
+        if (url) site.url = url;
+        if (localPath) site.localPath = localPath;
+        if (status) site.status = status;
+
+        await db.write();
+        res.json(site);
+    });
+
+    app.post('/api/sites/:id/check-rank', async (req, res) => {
+        const site = db.data.sites.find(s => s.id === req.params.id);
+        if (!site) return res.status(404).send('Site not found');
+        if (!site.url) return res.status(400).send('Website URL is missing.');
+
+        const { keyword } = req.body;
+        if (!keyword) return res.status(400).send('Keyword is required.');
+
+        try {
+            // Use .js extension for NodeNext resolution
+            const { SerpService } = await import('./services/serp.service.js');
+            const result = await SerpService.getGooglePosition(keyword, site.url);
+
+            res.json({
+                keyword,
+                ...result,
+                lastChecked: new Date().toISOString(),
+                isSimulated: false
+            });
+        } catch (error: any) {
+            console.log("Falling back to simulation (Real API error or missing Key)");
+            // Fallback for safety
+            const mockPositions = [1, 5, 12, 22, 45, 88];
+            const randomPos = mockPositions[Math.floor(Math.random() * mockPositions.length)];
+            res.json({
+                keyword,
+                position: randomPos,
+                lastChecked: new Date().toISOString(),
+                trend: 'stable',
+                isSimulated: true,
+                error: error.message
+            });
+        }
+    });
+
+    app.post('/api/sites/:id/roadmap', async (req, res) => {
+        const site = db.data.sites.find(s => s.id === req.params.id);
+        if (!site) return res.status(404).send('Site not found');
+
+        const { keyword, currentRank, pageIndex } = req.body;
+        const pageReport = site.report?.pages[pageIndex || 0];
+
+        if (!pageReport) return res.status(400).send('Page analysis needed first.');
+
+        const roadmap = await AIIntelligenceService.generateRoadmap(pageReport.data, currentRank || 100, keyword);
+        res.json(roadmap);
+    });
+
+    app.post('/api/sites/:id/social-tags', async (req, res) => {
+        const site = db.data.sites.find(s => s.id === req.params.id);
+        if (!site) return res.status(404).send('Site not found');
+
+        const { pageIndex } = req.body;
+        const pageReport = site.report?.pages[pageIndex || 0];
+
+        if (!pageReport) return res.status(400).send('Page analysis needed first.');
+
+        const socialTags = await AIIntelligenceService.generateSocialTags(pageReport.data);
+        res.json(socialTags);
+    });
+
     app.post('/api/sites/:id/analyze', async (req, res) => {
         const site = db.data.sites.find(s => s.id === req.params.id);
         if (!site) return res.status(404).send('Site not found');

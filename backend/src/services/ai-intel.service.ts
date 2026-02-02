@@ -161,6 +161,48 @@ export class AIIntelligenceService {
         };
     }
 
+    public static async generateRoadmap(data: SEOPageData, currentRank: number, keyword: string) {
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            const prompt = `
+                You are a senior SEO Strategist. Create a 30-60-90 day roadmap to rank a website to the #1 position on Google.
+                
+                Target Keyword: ${keyword}
+                Current Position: ${currentRank}
+                Page Title: ${data.title}
+                Page H1: ${data.h1.join(', ')}
+                
+                Required Format: Return ONLY a valid JSON object with this structure:
+                {
+                    "estimatedTimeframe": "3-6 months",
+                    "milestones": [
+                        { "phase": "Immediate (1-7 Days)", "tasks": ["Task 1", "Task 2"], "impact": "High" },
+                        { "phase": "Short Term (30 Days)", "tasks": ["Task 3", "Task 4"], "impact": "Medium" },
+                        { "phase": "Growth (60-90 Days)", "tasks": ["Task 5", "Task 6"], "impact": "Very High" }
+                    ],
+                    "strategicAdvice": "Direct advice for the user"
+                }
+            `;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+            const jsonStr = text.replace(/```json|```/g, "").trim();
+            return JSON.parse(jsonStr);
+        } catch (error) {
+            console.error("Roadmap generation failed:", error);
+            return {
+                estimatedTimeframe: "6-12 months",
+                milestones: [
+                    { phase: "Phase 1", tasks: ["Optimize On-page Meta Tags", "Fix Technical Errors"], impact: "High" },
+                    { phase: "Phase 2", tasks: ["Build Quality Backlinks", "Content Expansion"], impact: "Very High" }
+                ],
+                strategicAdvice: "Consistency is key. Focus on technical health first."
+            };
+        }
+    }
+
     public static evaluateMeta(customTitle: string, customDesc: string, currentData: SEOPageData) {
         let score = 0;
         const feedback: string[] = [];
@@ -206,5 +248,47 @@ export class AIIntelligenceService {
             feedback,
             isWorthDoing: score >= 70
         };
+    }
+
+    public static async generateSocialTags(data: SEOPageData) {
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            const prompt = `
+                You are a Social Media Optimization Expert. Generate Open Graph and Twitter Card tags for this page.
+                
+                Page Title: ${data.title}
+                Page Description: ${data.description}
+                H1 Tag: ${data.h1[0] || 'No H1'}
+                
+                Required Format: Return ONLY a valid JSON object with this structure:
+                {
+                    "ogTitle": "Catchy Social Title",
+                    "ogDescription": "Engaging social description for sharing",
+                    "ogType": "website",
+                    "twitterCard": "summary_large_image",
+                    "twitterTitle": "Optimized Twitter Title",
+                    "twitterDescription": "Short, punchy twitter description",
+                    "suggestedImage": "Description of what the social image should look like"
+                }
+            `;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+            const jsonStr = text.replace(/```json|```/g, "").trim();
+            return JSON.parse(jsonStr);
+        } catch (error) {
+            console.error("Social tags generation failed:", error);
+            return {
+                ogTitle: data.title,
+                ogDescription: data.description,
+                ogType: "website",
+                twitterCard: "summary_large_image",
+                twitterTitle: data.title,
+                twitterDescription: data.description,
+                suggestedImage: "A clean, professional representation of the brand."
+            };
+        }
     }
 }

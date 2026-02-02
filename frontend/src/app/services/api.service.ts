@@ -38,4 +38,20 @@ export class ApiService {
     refreshSuggestions(id: string, pageIndex: number): Observable<any> {
         return this.http.post<any>(`${this.baseUrl}/sites/${id}/refresh-suggestions`, { pageIndex });
     }
+
+    updateSite(id: string, site: Partial<Site>): Observable<Site> {
+        return this.http.put<Site>(`${this.baseUrl}/sites/${id}`, site);
+    }
+
+    checkRank(id: string, keyword: string): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/sites/${id}/check-rank`, { keyword });
+    }
+
+    getRoadmap(id: string, keyword: string, currentRank: number, pageIndex: number): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/sites/${id}/roadmap`, { keyword, currentRank, pageIndex });
+    }
+
+    getSocialTags(id: string, pageIndex: number): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/sites/${id}/social-tags`, { pageIndex });
+    }
 }

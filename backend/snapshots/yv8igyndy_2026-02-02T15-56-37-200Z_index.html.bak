@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGILE-WEB | End-to-End Digital Ecosystems</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="navbar-fixed">
+        <nav class="glass-nav">
+            <div class="nav-wrapper container">
+                <a href="#" class="brand-logo outfit-bold">AGILE<span class="text-gradient">WEB</span></a>
+                <ul class="right hide-on-med-and-down">
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#marketing">Marketing</a></li>
+                    <li><a href="#tech">Technologies</a></li>
+                    <li><a href="#blog">Blog</a></li>
+                    <li><a href="#contact" class="nav-cta">Get a Quote</a></li>
+                    <li><a href="#" id="theme-toggle"><i class="material-icons">light_mode</i></a></li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <section id="home" class="hero-modern">
+        <div class="glow-sphere"></div>
+        <div class="container center-align">
+            <div class="badge-pill" data-aos="fade-down">Innovative Digital Solutions</div>
+            <h1 class="outfit-bold" data-aos="fade-up">Scale Your Vision <br><span class="text-gradient">Globally.</span></h1>
+            <p class="hero-subtext">From custom software to viral marketing strategies, we provide the engine for your growth.</p>
+        </div>
+    </section>
+
+    <section id="services" class="section">
+        <div class="container">
+            <h2 class="center-align outfit-bold">Comprehensive Services</h2>
+            <div class="row">
+                <div class="col s12 m4" data-aos="fade-up">
+                    <div class="card glass-card">
+                        <div class="card-content">
+                            <i class="material-icons medium accent-text">language</i>
+                            <h5 class="outfit-bold">Web Development</h5>
+                            <p>E-commerce, PWAs, and Enterprise Portals built with the latest frameworks.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col s12 m4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card glass-card">
+                        <div class="card-content">
+                            <i class="material-icons medium accent-text">smartphone</i>
+                            <h5 class="outfit-bold">App Development</h5>
+                            <p>High-fidelity mobile experiences for iOS and Android using Flutter & React Native.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col s12 m4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card glass-card">
+                        <div class="card-content">
+                            <i class="material-icons medium accent-text">cloud</i>
+                            <h5 class="outfit-bold">Cloud Infrastructure</h5>
+                            <p>DevOps automation, AWS/Azure migration, and serverless architecture.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="marketing" class="section secondary-bg">
+        <div class="container">
+            <h2 class="center-align outfit-bold">Dominant Marketing</h2>
+            <div class="row">
+                <div class="col s12 m4" data-aos="zoom-in">
+                    <div class="card marketing-card-new">
+                        <div class="card-content center">
+                            <img src="https://cdn.worldvectorlogo.com/logos/instagram-2016.svg" alt="Instagram" height="40">
+                            <h5>Instagram Growth</h5>
+                            <p>Reels strategy, aesthetic curation, and influencer partnerships.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col s12 m4" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="card marketing-card-new">
+                        <div class="card-content center">
+                            <img src="https://cdn.worldvectorlogo.com/logos/facebook-4.svg" alt="Facebook" height="40">
+                            <h5>Facebook Ads</h5>
+                            <p>High-converting funnel setup and hyper-targeted audience acquisition.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col s12 m4" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="card marketing-card-new">
+                        <div class="card-content center">
+                            <i class="material-icons medium blue-text">search</i>
+                            <h5>Elite SEO</h5>
+                            <p>Technical SEO, backlink building, and content authority to rank #1.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tech" class="section">
+        <div class="container center-align">
+            <h2 class="outfit-bold">Our Tech Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/react-2.svg"><span>React</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/next-js.svg"><span>Next.js</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/typescript.svg"><span>TypeScript</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/nodejs-icon.svg"><span>Node.js</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/python-5.svg"><span>Python</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/flutter.svg"><span>Flutter</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/aws-2.svg"><span>AWS</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/docker-4.svg"><span>Docker</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/kubernetes.svg"><span>K8s</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/mongodb-icon-1.svg"><span>MongoDB</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/postgresql.svg"><span>PostgreSQL</span></div>
+                <div class="tech-icon-box"><img src="https://cdn.worldvectorlogo.com/logos/figma-1.svg"><span>Figma</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="blog" class="section secondary-bg">
+        <div class="container">
+            <h2 class="center-align outfit-bold">Latest Insights</h2>
+            <div class="row">
+                <div class="col s12 m4">
+                    <div class="card blog-card">
+                        <div class="card-image"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&q=60"></div>
+                        <div class="card-content">
+                            <h6>Technology</h6>
+                            <h5>The Rise of Serverless Computing</h5>
+                            <p>How to reduce costs and scale infinitely without managing servers.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col s12 m4">
+                    <div class="card blog-card">
+                        <div class="card-image"><img src="https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=500&q=60"></div>
+                        <div class="card-content">
+                            <h6>Marketing</h6>
+                            <h5>Meta Ads Strategy for 2026</h5>
+                            <p>Adapting your creative funnel for AI-driven ad platforms.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col s12 m4">
+                    <div class="card blog-card">
+                        <div class="card-image"><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=500&q=60"></div>
+                        <div class="card-content">
+                            <h6>Business</h6>
+                            <h5>SEO vs Performance Marketing</h5>
+                            <p>When to invest in organic growth and when to go for paid ads.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section">
+        <div class="container">
+            <div class="card glass-card form-wrap">
+                <div class="row">
+                    <div class="col s12 l5 contact-details">
+                        <h3 class="outfit-bold text-gradient">Get a Quotation</h3>
+                        <p>Fill out the form and our strategist will reach out with a custom plan within 24 hours.</p>
+                        <ul class="contact-list">
+                            <li><i class="material-icons">location_on</i> Detroit, Michigan, USA</li>
+                            <li><i class="material-icons">email</i> contact@agile-web-services.com</li>
+                        </ul>
+                    </div>
+                    <div class="col s12 l7">
+                        <form id="quoteForm">
+                            <div class="row">
+                                <div class="input-field col s12 m6"><input id="name" type="text" required><label for="name">Name</label></div>
+                                <div class="input-field col s12 m6"><input id="email" type="email" required><label for="email">Email</label></div>
+                                <div class="input-field col s12 m12">
+                                    <select id="service-type">
+                                        <option value="" disabled selected>Select Service</option>
+                                        <option value="web">Web Solution</option>
+                                        <option value="app">Mobile App</option>
+                                        <option value="smm">SMM & Marketing</option>
+                                        <option value="seo">SEO Optimization</option>
+                                    </select>
+                                    <label>What are you looking for?</label>
+                                </div>
+                                <div class="input-field col s12 m12"><textarea id="project" class="materialize-textarea"></textarea><label for="project">Project Requirements</label></div>
+                                <div class="col s12"><button class="btn-premium">Request Free Quote</button></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

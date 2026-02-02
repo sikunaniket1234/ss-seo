@@ -22,11 +22,28 @@ export class AuditDetailComponent implements OnInit {
     evaluating = signal(false);
     refreshingAI = signal(false);
     selectedVariationIndex = signal(0);
+    serpMode = signal<'desktop' | 'mobile'>('desktop');
 
     // Manual Evaluation
     manualTitle = signal('');
     manualDescription = signal('');
     evaluationResult = signal<any>(null);
+
+    // Rank Checker
+    checkingRank = signal(false);
+    rankKeyword = signal('');
+    rankResult = signal<any>(null);
+    editingUrl = signal(false);
+    newUrl = signal('');
+
+    // Roadmap
+    generatingRoadmap = signal(false);
+    roadmap = signal<any>(null);
+
+    // OG Tag Master
+    generatingSocial = signal(false);
+    socialTags = signal<any>(null);
+    socialPreviewMode = signal<'facebook' | 'twitter'>('facebook');
 
     siteId = '';
 
@@ -152,6 +169,50 @@ export class AuditDetailComponent implements OnInit {
         });
     }
 
+    checkRank() {
+        if (!this.rankKeyword()) return;
+        this.checkingRank.set(true);
+        this.api.checkRank(this.siteId, this.rankKeyword()).subscribe({
+            next: (res) => {
+                this.rankResult.set(res);
+                this.checkingRank.set(false);
+            },
+            error: (err) => {
+                alert(err.error || 'Rank check failed.');
+                this.checkingRank.set(false);
+            }
+        });
+    }
+
+    updateUrl() {
+        if (!this.newUrl()) return;
+        this.api.updateSite(this.siteId, { url: this.newUrl() }).subscribe({
+            next: (updatedSite) => {
+                this.site.set(updatedSite);
+                this.editingUrl.set(false);
+            },
+            error: (err) => alert('Failed to update URL.')
+        });
+    }
+
+    generateRoadmap() {
+        const rank = this.rankResult()?.position || 100;
+        const keyword = this.rankKeyword();
+        if (!keyword) return;
+
+        this.generatingRoadmap.set(true);
+        this.api.getRoadmap(this.siteId, keyword, rank, this.selectedPageIndex()).subscribe({
+            next: (res) => {
+                this.roadmap.set(res);
+                this.generatingRoadmap.set(false);
+            },
+            error: (err) => {
+                alert('Failed to generate roadmap.');
+                this.generatingRoadmap.set(false);
+            }
+        });
+    }
+
     getScoreClass(score: number): string {
         if (score >= 80) return 'score-high';
         if (score >= 50) return 'score-medium';
@@ -172,5 +233,42 @@ export class AuditDetailComponent implements OnInit {
 
     printReport() {
         window.print();
+    }
+
+    generateSocialTags() {
+        this.generatingSocial.set(true);
+        this.api.getSocialTags(this.siteId, this.selectedPageIndex()).subscribe({
+            next: (res) => {
+                this.socialTags.set(res);
+                this.generatingSocial.set(false);
+            },
+            error: () => {
+                this.generatingSocial.set(false);
+                alert('Social tags generation failed.');
+            }
+        });
+    }
+
+    applySocialTags() {
+        const tags = this.socialTags();
+        if (!tags) return;
+
+        const patch = {
+            ogTitle: tags.ogTitle,
+            ogDescription: tags.ogDescription,
+            twitterTitle: tags.twitterTitle,
+            twitterDescription: tags.twitterDescription,
+            twitterCard: tags.twitterCard
+        };
+
+        this.patching.set(true);
+        this.api.patchSite(this.siteId, patch).subscribe({
+            next: () => {
+                alert('Social tags applied successfully!');
+                this.patching.set(false);
+                this.runAudit();
+            },
+            error: () => this.patching.set(false)
+        });
     }
 }

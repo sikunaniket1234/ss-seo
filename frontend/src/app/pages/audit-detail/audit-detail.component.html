@@ -154,6 +154,244 @@
                 </button>
             </div>
 
+            <!-- SERP Preview Simulator -->
+            <div class="serp-preview-card glass-card mt-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-2">
+                        <h3>Visual SERP Simulator</h3>
+                        <span class="badge badge-outline text-[10px]">Real-time Preview</span>
+                    </div>
+                    <div class="preview-toggles flex p-1 bg-black/20 rounded-lg">
+                        <button class="px-3 py-1 rounded-md text-xs transition" 
+                                [class.active]="serpMode() === 'desktop'" 
+                                (click)="serpMode.set('desktop')">🖥️ Desktop</button>
+                        <button class="px-3 py-1 rounded-md text-xs transition" 
+                                [class.active]="serpMode() === 'mobile'" 
+                                (click)="serpMode.set('mobile')">📱 Mobile</button>
+                    </div>
+                </div>
+
+                <div class="google-container" [class.mobile-view]="serpMode() === 'mobile'">
+                    <div class="google-result">
+                        <div class="result-site-info">
+                            <span class="site-icon">🌐</span>
+                            <div class="site-path">
+                                <span class="site-name">{{ site()?.url || 'yoursite.com' }}</span>
+                                <span class="site-url">{{ pageReport.url }}</span>
+                            </div>
+                        </div>
+                        <h4 class="result-title">
+                            {{ pageReport.suggestedTags?.variations?.[selectedVariationIndex()]?.title || pageReport.suggestedTags?.title }}
+                        </h4>
+                        <p class="result-description">
+                            {{ pageReport.suggestedTags?.variations?.[selectedVariationIndex()]?.description || pageReport.suggestedTags?.description }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rank Tracker Section -->
+            <div class="rank-tracker-card glass-card mt-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-2">
+                        <h3>Keyword Rank Tracker</h3>
+                        <span class="badge badge-ai">Live SERP Check</span>
+                    </div>
+                </div>
+
+                @if (!site()?.url && !editingUrl()) {
+                    <div class="alert bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl mb-6">
+                        <div class="flex items-center gap-3">
+                            <span>⚠️</span>
+                            <div>
+                                <div class="font-bold text-orange-400">Live URL Missing</div>
+                                <div class="text-sm opacity-80">We need a live URL to check rankings on Google.</div>
+                                <button class="btn btn-xs mt-2" (click)="editingUrl.set(true)">Add URL Now</button>
+                            </div>
+                        </div>
+                    </div>
+                } @else if (editingUrl()) {
+                    <div class="url-edit-box animate-fadeIn">
+                        <label class="text-[10px] uppercase font-bold text-muted mb-3 block tracking-widest">Live Website URL</label>
+                        <div class="flex gap-3">
+                            <input name="liveUrl" [(ngModel)]="newUrl" placeholder="https://example.com" class="form-input flex-1">
+                            <button class="btn btn-primary btn-sm" (click)="updateUrl()">Save</button>
+                            <button class="btn btn-outline btn-sm" (click)="editingUrl.set(false)">Cancel</button>
+                        </div>
+                    </div>
+                }
+
+                <div class="rank-form flex gap-3 mb-4">
+                    <div class="flex-1">
+                        <input name="rankKey" [(ngModel)]="rankKeyword" placeholder="Enter target keyword..." class="form-input w-full">
+                    </div>
+                    <button class="btn btn-primary" (click)="checkRank()" [disabled]="checkingRank() || !site()?.url">
+                        {{ checkingRank() ? 'Checking...' : 'Check Rank' }}
+                    </button>
+                </div>
+
+                <!-- Suggested Keywords to Check -->
+                @if (pageReport.suggestedTags?.keywords) {
+                    <div class="suggested-keywords mb-8 animate-fadeIn">
+                        <p class="text-[10px] uppercase font-bold text-muted mb-3 tracking-wider">Suggested from Analysis:</p>
+                        <div class="flex flex-wrap gap-2">
+                            @for (kw of (pageReport.suggestedTags?.keywords || '').split(','); track kw) {
+                                <button class="kw-chip" (click)="rankKeyword.set(kw.trim()); checkRank()">
+                                    {{ kw.trim() }}
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (rankResult()) {
+                    <div class="rank-result-display grid grid-cols-2 gap-6 animate-fadeIn">
+                    <div class="res-card">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-xs text-muted uppercase font-bold tracking-wider">Google Position</div>
+                            @if (rankResult().isSimulated) {
+                                <span class="text-[9px] bg-white/5 px-2 py-0.5 rounded border border-white/10 opacity-50">Simulation</span>
+                            }
+                        </div>
+                        <div class="text-3xl font-black" [class.text-success]="rankResult().position <= 10">
+                            #{{ rankResult().position }}
+                        </div>
+                    </div>
+                    <div class="res-card">
+                        <div class="text-xs text-muted uppercase font-bold tracking-wider mb-2">Trend</div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">{{ rankResult().trend === 'up' ? '📈' : '➖' }}</span>
+                            <span class="capitalize font-bold text-xl">{{ rankResult().trend }}</span>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (rankResult() && !roadmap()) {
+                    <div class="roadmap-cta animate-fadeIn">
+                        <div>
+                            <h4 class="font-bold text-lg">Want to reach #1?</h4>
+                            <p class="text-sm opacity-70">AI can generate a custom 30-90 day strategic roadmap for this keyword.</p>
+                        </div>
+                        <button class="btn btn-primary" (click)="generateRoadmap()" [disabled]="generatingRoadmap()">
+                            {{ generatingRoadmap() ? 'Strategizing...' : '🚀 Generate Roadmap' }}
+                        </button>
+                    </div>
+                }
+
+                @if (roadmap()) {
+                    <div class="roadmap-display animate-fadeIn">
+                        <div class="flex justify-between items-start mb-8">
+                            <div>
+                                <h4 class="text-2xl font-black uppercase tracking-tighter text-primary">Target: #1 Position</h4>
+                                <p class="text-sm text-muted">Estimated Completion: <span class="text-white font-bold">{{ roadmap().estimatedTimeframe }}</span></p>
+                            </div>
+                            <div class="badge badge-outline">Strategic Plan</div>
+                        </div>
+
+                        <div class="roadmap-timeline">
+                            @for (m of roadmap().milestones; track m.phase) {
+                                <div class="timeline-step">
+                                    <div class="step-dot"></div>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <div class="font-bold text-secondary text-lg">{{ m.phase }}</div>
+                                        <div class="text-[10px] uppercase font-bold px-3 py-1 rounded-full bg-white/10 border border-white/5"
+                                             [class.text-success]="m.impact === 'High' || m.impact === 'Very High'">
+                                            {{ m.impact }} Impact
+                                        </div>
+                                    </div>
+                                    <ul class="task-list list-disc list-inside">
+                                        @for (task of m.tasks; track task) {
+                                            <li class="mb-2">{{ task }}</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="advice-box">
+                            <label class="text-[10px] uppercase font-bold text-muted mb-2 block tracking-widest">AI Strategic Advice</label>
+                            <p class="text-base italic opacity-90 leading-relaxed">"{{ roadmap().strategicAdvice }}"</p>
+                        </div>
+                        
+                        <button class="btn btn-link btn-xs mt-6 text-primary-light" (click)="roadmap.set(null)">🔄 Regenerate Strategy</button>
+                    </div>
+                }
+            </div>
+
+            <!-- OG Tag Master Section -->
+            <div class="og-tag-master-card glass-card mt-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-xl font-bold">OG-Tag Master</h3>
+                        <span class="badge badge-ai">Social Optimization</span>
+                    </div>
+                    @if (!socialTags()) {
+                        <button class="btn btn-primary btn-sm px-6" (click)='generateSocialTags()' [disabled]="generatingSocial()">
+                            {{ generatingSocial() ? 'Generating...' : '✨ Optimize Social Tags' }}
+                        </button>
+                    }
+                </div>
+
+                @if (socialTags()) {
+                    <div class="social-preview-container bg-black/40 rounded-2xl border border-white/10 p-6 animate-fadeIn">
+                        <div class="flex gap-2 mb-6">
+                            <button class="social-tab" [class.active]="socialPreviewMode() === 'facebook'" 
+                                (click)="socialPreviewMode.set('facebook')">Facebook</button>
+                            <button class="social-tab" [class.active]="socialPreviewMode() === 'twitter'" 
+                                (click)="socialPreviewMode.set('twitter')">Twitter / X</button>
+                        </div>
+
+                        <!-- Facebook Preview -->
+                        @if (socialPreviewMode() === 'facebook') {
+                            <div class="fb-preview animate-fadeIn rounded-xl overflow-hidden border border-white/10">
+                                <div class="fb-image-placeholder relative h-48 bg-white/5 flex items-center justify-center p-8 text-center">
+                                    <div class="absolute inset-0 opacity-20 bg-gradient-to-br from-primary to-secondary"></div>
+                                    <span class="text-xs font-bold uppercase tracking-widest text-white/40 z-10">{{ socialTags().suggestedImage }}</span>
+                                </div>
+                                <div class="p-4 bg-[#f0f2f5] text-[#1c1e21]">
+                                    <div class="text-[12px] uppercase opacity-60 font-semibold mb-1">{{ site()?.url || 'YOURSITE.COM' }}</div>
+                                    <div class="font-bold text-[16px] leading-tight mb-1 text-[#1c1e21]">{{ socialTags().ogTitle }}</div>
+                                    <div class="text-[14px] opacity-70 line-clamp-2 text-[#65676b]">{{ socialTags().ogDescription }}</div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Twitter Preview -->
+                        @if (socialPreviewMode() === 'twitter') {
+                            <div class="twitter-preview animate-fadeIn rounded-xl overflow-hidden border border-white/20">
+                                <div class="tw-image-placeholder relative h-48 bg-white/5 flex items-center justify-center p-8 text-center">
+                                    <div class="absolute inset-0 opacity-10 bg-primary"></div>
+                                    <span class="text-xs font-bold uppercase tracking-widest text-white/30 z-10">{{ socialTags().suggestedImage }}</span>
+                                </div>
+                                <div class="p-3 bg-black text-white border-t border-white/20">
+                                    <div class="text-[13px] opacity-60 mb-1">{{ site()?.url || 'yoursite.com' }}</div>
+                                    <div class="font-bold text-[15px] leading-tight mb-1 text-white">{{ socialTags().twitterTitle }}</div>
+                                    <div class="text-[14px] opacity-70 line-clamp-2 text-white/80">{{ socialTags().twitterDescription }}</div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mt-8 flex flex-col md:flex-row justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 gap-4">
+                            <div class="flex-1">
+                                <div class="text-[10px] uppercase font-bold text-muted mb-1 tracking-widest">AI Image Strategy</div>
+                                <p class="text-xs italic opacity-80 leading-relaxed">{{ socialTags().suggestedImage }}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn btn-outline btn-sm px-4" (click)="generateSocialTags()">🔄 Refresh</button>
+                                <button class="btn btn-primary btn-sm px-6" (click)="applySocialTags()" [disabled]="patching()">Apply Tags</button>
+                            </div>
+                        </div>
+                    </div>
+                } @else {
+                    <div class="text-center py-16 bg-white/2 rounded-2xl border border-dashed border-white/10">
+                        <div class="text-5xl mb-4 group-hover:scale-110 transition-transform">📢</div>
+                        <h4 class="text-lg font-bold mb-2">Social Sharing Data Missing</h4>
+                        <p class="text-sm opacity-50 max-w-md mx-auto">Click generate to let AI craft high-converting titles and descriptions for your social media thumbnails.</p>
+                    </div>
+                }
+            </div>
+
             <!-- Manual Experiment -->
             <div class="manual-eval-card glass-card mt-6">
                 <div class="flex justify-between items-center mb-4">

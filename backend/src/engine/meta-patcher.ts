@@ -8,6 +8,10 @@ export interface MetaPatch {
     canonical?: string;
     ogTitle?: string;
     ogDescription?: string;
+    ogType?: string;
+    twitterTitle?: string;
+    twitterDescription?: string;
+    twitterCard?: string;
 }
 
 export class MetaPatcher {
@@ -50,6 +54,22 @@ export class MetaPatcher {
 
         if (patch.ogDescription) {
             this.updateOrAddPropertyMeta($, 'og:description', patch.ogDescription);
+        }
+
+        if (patch.ogType) {
+            this.updateOrAddPropertyMeta($, 'og:type', patch.ogType);
+        }
+
+        if (patch.twitterTitle) {
+            this.updateOrAddMeta($, 'twitter:title', patch.twitterTitle);
+        }
+
+        if (patch.twitterDescription) {
+            this.updateOrAddMeta($, 'twitter:description', patch.twitterDescription);
+        }
+
+        if (patch.twitterCard) {
+            this.updateOrAddMeta($, 'twitter:card', patch.twitterCard);
         }
 
         return $.html();
