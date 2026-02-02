@@ -11,7 +11,7 @@ export class CrawlerService {
         for (const file of htmlFiles) {
             const html = await fs.readFile(file, 'utf8');
             const relativePath = path.relative(localPath, file);
-            const report = SEOAnalyzer.analyze(html, baseUrl ? `${baseUrl}/${relativePath}` : relativePath);
+            const report = await SEOAnalyzer.analyze(html, baseUrl ? `${baseUrl}/${relativePath}` : relativePath);
             report.filePath = file;
             reports.push(report);
         }

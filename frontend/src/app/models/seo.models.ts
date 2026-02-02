@@ -36,6 +36,13 @@ export interface SEOAuditReport {
         title: string;
         description: string;
         keywords: string;
+        variations?: Array<{
+            id: string;
+            strategy: string;
+            title: string;
+            description: string;
+            score: number;
+        }>;
     };
 }
 

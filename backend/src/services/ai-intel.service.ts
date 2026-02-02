@@ -1,10 +1,13 @@
 import natural from 'natural';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { SEOPageData } from '../models/seo.models.js';
+
+// Initialize Gemini with the provided API Key
+const genAI = new GoogleGenerativeAI("AIzaSyAnSIJ4A9kT6EPxEZD7ta5C9yz1d9Ktkhs");
 
 export class AIIntelligenceService {
     public static extractKeywords(htmlContent: string): string[] {
         const tfidf = new (natural as any).TfIdf();
-        // Remove tags and extra whitespace to get clean text for analysis
         const cleanText = htmlContent
             .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, '')
             .replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gim, '')
@@ -13,14 +16,11 @@ export class AIIntelligenceService {
             .trim();
 
         tfidf.addDocument(cleanText);
-
         const terms = (tfidf as any).listTerms(0);
-        // Filter out common stop words or very short terms manually if needed, 
-        // though TfIdf helps with relevance.
         return terms
             .filter((item: any) => item.term.length > 3)
             .slice(0, 10)
-            .map((item: any) => item.term);
+            .map((item: any) => (item.term as string));
     }
 
     public static calculateReadability(htmlContent: string): number {
@@ -32,7 +32,6 @@ export class AIIntelligenceService {
         const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length || 1;
         const words = text.split(/\s+/).filter(w => w.trim().length > 0).length || 1;
 
-        // Simple syllable counter heuristic
         const countSyllables = (word: string) => {
             word = word.toLowerCase();
             if (word.length <= 3) return 1;
@@ -43,40 +42,169 @@ export class AIIntelligenceService {
         };
 
         const syllables = text.split(/\s+/).reduce((acc, word) => acc + countSyllables(word), 0);
-
-        // Flesch Reading Ease Formula
         const score = 206.835 - (1.015 * (words / sentences)) - (84.6 * (syllables / words));
         return Math.max(0, Math.min(100, Math.round(score)));
     }
 
     public static generateAltSuggestions(imgSrc: string, context: string): string {
-        // Extract filename without extension as fallback
         const filename = imgSrc.split('/').pop()?.split('.')[0] || 'Image';
         const cleanContext = context.length > 50 ? context.substring(0, 50) + '...' : context;
-
         return `${filename.replace(/[-_]/g, ' ')} showing ${cleanContext}`.trim();
     }
 
-    public static generateSuggestions(data: SEOPageData, keywords: string[]) {
-        const suggestions = {
-            title: data.title,
-            description: data.description,
-            keywords: keywords.join(', '),
-            imageAlts: data.images.map(img => !img.alt ? this.generateAltSuggestions(img.src, data.h1[0] || 'Site Content') : img.alt)
+    public static async generateSuggestions(data: SEOPageData, keywords: string[]) {
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            const prompt = `
+                You are a world-class SEO expert. Analyze the following page data and generate 3 distinct meta tag strategy variations.
+                
+                Page Title: ${data.title}
+                Page H1: ${data.h1.join(', ')}
+                Keywords Found: ${keywords.join(', ')}
+                
+                Required Format: Return ONLY a valid JSON object with the following structure:
+                {
+                    "variations": [
+                        {
+                            "id": "benefit",
+                            "strategy": "Benefit-Focused",
+                            "title": "Generated Title (Max 60 chars)",
+                            "description": "Generated Description (Max 160 chars)",
+                            "score": 92
+                        },
+                        {
+                            "id": "informative",
+                            "strategy": "Informative/How-to",
+                            "title": "Generated Title (Max 60 chars)",
+                            "description": "Generated Description (Max 160 chars)",
+                            "score": 88
+                        },
+                        {
+                            "id": "authority",
+                            "strategy": "Authority Build",
+                            "title": "Generated Title (Max 60 chars)",
+                            "description": "Generated Description (Max 160 chars)",
+                            "score": 95
+                        }
+                    ],
+                    "keywords": "comma, separated, list, of, keywords"
+                }
+
+                Rules:
+                1. Strategies must be distinct.
+                2. Titles MUST be under 60 characters.
+                3. Descriptions MUST be under 160 characters.
+                4. Use the extracted keywords naturally.
+                5. The JSON must be parseable.
+            `;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            // Extract JSON from response (handling potential markdown blocks)
+            const jsonStr = text.replace(/```json|```/g, "").trim();
+            const aiData = JSON.parse(jsonStr);
+
+            return {
+                ...aiData,
+                title: aiData.variations[0].title,
+                description: aiData.variations[0].description,
+                imageAlts: data.images.map(img => !img.alt ? this.generateAltSuggestions(img.src || 'image.png', data.h1[0] || keywords[0] || 'site content') : img.alt)
+            };
+
+        } catch (error) {
+            console.error("Gemini AI failed, falling back to local patterns:", error);
+            return this.generateSuggestionsLocal(data, keywords);
+        }
+    }
+
+    // Fallback method in case API fails
+    private static generateSuggestionsLocal(data: SEOPageData, keywords: string[]) {
+        const brandName = "Agency SEO Engine";
+        const h1Main = data.h1[0] || "";
+        const kSafe = keywords || [];
+        const keywordMain = kSafe[0] || "Our Site";
+
+        const verbs = ['Maximize', 'Elevate', 'Optimize', 'Boost', 'Unleash', 'Master'];
+        const adjectives = ['Expert', 'Proven', 'Strategic', 'Data-Driven', 'Premium', 'Pro'];
+        const getRandom = (arr: string[]): string => arr[Math.floor(Math.random() * arr.length)] || arr[0] || "";
+
+        const var1 = {
+            id: 'benefit', strategy: 'Benefit-Focused',
+            title: `${getRandom(verbs)} ${h1Main || keywordMain} | ${getRandom(adjectives)} Results`.slice(0, 60),
+            description: `${getRandom(verbs)} the full potential of your site content and get professional solutions.`.slice(0, 160),
+            score: 92
         };
 
-        // Heuristic: If title is weak, use H1 + Brand
-        if (!data.title || data.title.length < 20) {
-            const base = data.h1.length > 0 ? data.h1[0] : (keywords[0] || 'My Site');
-            suggestions.title = `${base} | Professional SEO Insight`.slice(0, 60);
+        const var2 = {
+            id: 'informative', strategy: 'Informative/How-to',
+            title: `How to ${getRandom(verbs)} ${h1Main || keywordMain} for Success`.slice(0, 60),
+            description: `Discover the ultimate guide to ${h1Main || keywordMain}. Best practices and latest trends.`.slice(0, 160),
+            score: 88
+        };
+
+        const var3 = {
+            id: 'authority', strategy: 'Authority Build',
+            title: `#1 Source for ${h1Main || keywordMain} - ${brandName}`.slice(0, 60),
+            description: `Join the leaders in ${h1Main || keywordMain}. Elite strategies and results.`.slice(0, 160),
+            score: 95
+        };
+
+        return {
+            variations: [var3, var1, var2],
+            title: var3.title,
+            description: var3.description,
+            keywords: kSafe.join(', '),
+            imageAlts: data.images.map(img => !img.alt ? this.generateAltSuggestions(img.src || 'image.png', h1Main || keywordMain) : img.alt)
+        };
+    }
+
+    public static evaluateMeta(customTitle: string, customDesc: string, currentData: SEOPageData) {
+        let score = 0;
+        const feedback: string[] = [];
+
+        const getVisualWeight = (str: string) => {
+            const caps = (str.match(/[A-Z]/g) || []).length;
+            const symbols = (str.match(/[WM]/g) || []).length;
+            return str.length + (caps * 0.2) + (symbols * 0.3);
+        };
+
+        const titleWeight = getVisualWeight(customTitle);
+        if (titleWeight >= 35 && titleWeight <= 58) {
+            score += 40;
+            feedback.push('Title visual width is perfect for Google SERPs.');
+        } else if (titleWeight > 58) {
+            feedback.push('Title may be truncated in search results (too wide).');
+        } else {
+            feedback.push('Title is visually thin; add a benefit or brand name.');
         }
 
-        // Heuristic: If description is missing, synthesize from H1/H2 and keywords
-        if (!data.description || data.description.length < 50) {
-            const topic = data.h1.length > 0 ? data.h1[0] : keywords.slice(0, 2).join(' and ');
-            suggestions.description = `Discover comprehensive details about ${topic}. Featuring insights on ${keywords.slice(2, 5).join(', ')}. Optimize your static site effectively.`.slice(0, 160);
+        if (customDesc.length >= 120 && customDesc.length <= 156) {
+            score += 30;
+            feedback.push('Description length is ideal for high click-through rate.');
+        } else {
+            feedback.push(customDesc.length < 120 ? 'Description is too short to be persuasive.' : 'Description exceeds 156 chars and will be cut off.');
         }
 
-        return suggestions;
+        const h1Arr = currentData.h1 || [];
+        const h1Text = h1Arr[0] || "";
+        const h1Lower = h1Text.toLowerCase();
+        const importantWords = h1Lower.split(' ').filter(w => w.length > 4);
+        const matchedInMeta = importantWords.filter(w => customTitle.toLowerCase().includes(w) || customDesc.toLowerCase().includes(w));
+
+        if (matchedInMeta.length >= Math.min(1, importantWords.length)) {
+            score += 30;
+            feedback.push('Strong semantic link between H1 and Meta content.');
+        } else if (importantWords.length > 0) {
+            feedback.push(`Include terms from your H1: "${importantWords.slice(0, 3).join(', ')}".`);
+        }
+
+        return {
+            score: Math.min(100, score),
+            feedback,
+            isWorthDoing: score >= 70
+        };
     }
 }

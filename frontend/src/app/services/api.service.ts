@@ -23,11 +23,19 @@ export class ApiService {
         return this.http.post<SiteReport>(`${this.baseUrl}/sites/${id}/analyze`, {});
     }
 
-    generateTechnicalFiles(id: string): Observable<{ success: boolean; message: string }> {
-        return this.http.post<{ success: boolean; message: string }>(`${this.baseUrl}/sites/${id}/generate-technical`, {});
+    generateTechnicalFiles(id: string, baseUrl?: string): Observable<{ success: boolean; message: string }> {
+        return this.http.post<{ success: boolean; message: string }>(`${this.baseUrl}/sites/${id}/generate-technical`, { baseUrl });
     }
 
     patchSite(id: string, patch: any): Observable<{ success: boolean; message: string }> {
         return this.http.post<{ success: boolean; message: string }>(`${this.baseUrl}/sites/${id}/patch`, { patch });
+    }
+
+    evaluateTags(id: string, title: string, description: string, pageIndex: number): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/sites/${id}/evaluate`, { title, description, pageIndex });
+    }
+
+    refreshSuggestions(id: string, pageIndex: number): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/sites/${id}/refresh-suggestions`, { pageIndex });
     }
 }

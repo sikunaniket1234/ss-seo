@@ -47,7 +47,7 @@
         <h3>Pages</h3>
         <div class="page-list mt-4">
             @for (page of siteReport()!.pages; track page.url; let i = $index) {
-                <div class="page-item" [class.active]="selectedPageIndex() === i" (click)="selectedPageIndex.set(i)">
+                <div class="page-item" [class.active]="selectedPageIndex() === i" (click)="selectedPageIndex.set(i); selectedVariationIndex.set(0)">
                     <span class="page-name">{{ page.url }}</span>
                     <span class="page-score" [class]="getScoreClass(page.overallScore)">{{ page.overallScore }}%</span>
                 </div>
@@ -101,27 +101,92 @@
             <!-- AI Suggestions vs Current -->
             <div class="suggestions-card glass-card">
                 <div class="flex justify-between items-center mb-4">
-                <h3>AI Optimized Meta Tags</h3>
-                <span class="badge badge-ai">Safe Patch Ready</span>
+                    <h3>AI Optimized Meta Tags</h3>
+                    <div class="flex gap-2">
+                        <button class="btn btn-outline btn-xs btn-refresh" (click)="refreshSuggestions()" [disabled]="refreshingAI()">
+                            {{ refreshingAI() ? '...' : '🔄 Refresh' }}
+                        </button>
+                        <span class="badge badge-ai">Safe Patch Ready</span>
+                    </div>
                 </div>
+                <!-- Variations Selector -->
+                @if (pageReport.suggestedTags?.variations) {
+                    <div class="variation-tabs mb-6 flex gap-2">
+                        @for (v of pageReport.suggestedTags?.variations; track v.id; let vi = $index) {
+                            <button class="v-tab px-4 py-2 rounded-lg text-sm transition" 
+                                    [class]="v.id"
+                                    [class.active]="selectedVariationIndex() === vi" 
+                                    (click)="selectedVariationIndex.set(vi)">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ v.id === 'benefit' ? '🚀' : v.id === 'informative' ? '💡' : '🏆' }}</span>
+                                    <div class="font-bold">{{ v.strategy }}</div>
+                                </div>
+                                <div class="text-xs opacity-70">{{ v.score }}% strength</div>
+                            </button>
+                        }
+                    </div>
+                }
+
                 <div class="diff-table">
-                <div class="diff-row header">
-                    <div class="col">Tag</div>
-                    <div class="col">Current</div>
-                    <div class="col">Suggested</div>
+                    <div class="diff-row header">
+                        <div class="col">Tag</div>
+                        <div class="col">Current</div>
+                        <div class="col">Suggested ({{ pageReport.suggestedTags?.variations?.[selectedVariationIndex()]?.strategy || 'Auto' }})</div>
+                    </div>
+                    <div class="diff-row">
+                        <div class="col label">Title</div>
+                        <div class="col current">{{ pageReport.data.title || 'Empty' }}</div>
+                        <div class="col suggested">
+                            {{ pageReport.suggestedTags?.variations?.[selectedVariationIndex()]?.title || pageReport.suggestedTags?.title }}
+                        </div>
+                    </div>
+                    <div class="diff-row">
+                        <div class="col label">Description</div>
+                        <div class="col current">{{ pageReport.data.description || 'Empty' }}</div>
+                        <div class="col suggested">
+                            {{ pageReport.suggestedTags?.variations?.[selectedVariationIndex()]?.description || pageReport.suggestedTags?.description }}
+                        </div>
+                    </div>
                 </div>
-                <!-- ... existing rows ... -->
-                <div class="diff-row">
-                    <div class="col label">Title</div>
-                    <div class="col current">{{ pageReport.data.title || 'Empty' }}</div>
-                    <div class="col suggested">{{ pageReport.suggestedTags?.title }}</div>
+
+                <button class="btn btn-primary mt-6 w-full" (click)="applyPatch()" [disabled]="patching()">
+                    {{ patching() ? 'Applying...' : '🚀 Apply Selected AI Variation' }}
+                </button>
+            </div>
+
+            <!-- Manual Experiment -->
+            <div class="manual-eval-card glass-card mt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3>Manual Meta Experiment</h3>
+                    <span class="badge badge-ai">Real-time Check</span>
                 </div>
-                <div class="diff-row">
-                    <div class="col label">Description</div>
-                    <div class="col current">{{ pageReport.data.description || 'Empty' }}</div>
-                    <div class="col suggested">{{ pageReport.suggestedTags?.description }}</div>
+                <div class="form-grid">
+                    <div class="form-group mb-4">
+                        <label class="block text-sm mb-1 text-muted">Custom Title</label>
+                        <input name="testTitle" [(ngModel)]="manualTitle" placeholder="Enter test title..." class="form-input w-full">
+                    </div>
+                    <div class="form-group mb-4">
+                        <label class="block text-sm mb-1 text-muted">Custom Description</label>
+                        <textarea name="testDesc" [(ngModel)]="manualDescription" placeholder="Enter test description..." class="form-input w-full" rows="3"></textarea>
+                    </div>
+                    <button class="btn btn-primary w-full" (click)="evaluateManualTags()" [disabled]="evaluating()">
+                        {{ evaluating() ? 'Analyzing...' : '🔍 Validate with AI' }}
+                    </button>
                 </div>
-                </div>
+
+                @if (evaluationResult()) {
+                    <div class="evaluation-feedback mt-6 p-4 rounded-lg" [class.success]="evaluationResult().isWorthDoing" [class.warning]="!evaluationResult().isWorthDoing">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="verdict-text">AI Verdict: {{ evaluationResult().isWorthDoing ? 'Worth Doing ✅' : 'Needs Improvement ⚠️' }}</span>
+                            <span class="badge">{{ evaluationResult().score }}% Strength</span>
+                        </div>
+                        <ul class="feedback-list">
+                            @for (tip of evaluationResult().feedback; track tip) {
+                                <li>{{ tip }}</li>
+                            }
+                        </ul>
+                    </div>
+                }
             </div>
         </div>
       }
@@ -298,4 +363,5 @@
         </div>
     }
   </div>
+  }
 </div>
